@@ -69,7 +69,7 @@ class FileSystem:
             # after the first time and cannot be deleted again after the second time.
             pass
 
-    def getFolder(self, folder: Folder, forceUpdate=False, skipStore=False) -> Folder:
+    def getFolder(self, folder: Folder, forceUpdate=True, skipStore=False) -> Folder:
         """
         Get a folder from ID. No full files are downloaded.
 

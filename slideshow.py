@@ -36,6 +36,7 @@ class Slideshow:
         'image/heif',
         'image/x-photoshop',
         'image/cr2',
+        'image/webp',
     ]
 
     class __DirectoryEmptyException(Exception):
@@ -102,13 +103,14 @@ class Slideshow:
     def __chooseRandomFileFirstLevel(self) -> tuple[File, str]:
         # TODO: bias this towards newer folders
         topLevelFolder = self.__fileSystem.getFolder(self.__rootFolder)
-        nrFolders = topLevelFolder['nrFolders']
-        topLevelFolders = self.__fileSystem.filterNodes(
-            topLevelFolder['nodes'], True, False)
-        r = random.randint(0, nrFolders-1)
-        nextFolder = self.__fileSystem.getFolder(topLevelFolders[r])
-        file, path = self.__chooseRandomFileRec(nextFolder)
-        return file, nextFolder['name'] + "/" + path
+        print(topLevelFolder)
+        #nrFolders = topLevelFolder['nrFolders']
+        #topLevelFolders = self.__fileSystem.filterNodes(
+        #    topLevelFolder['nodes'], True, False)
+        #r = random.randint(0, nrFolders-1)
+       # nextFolder = self.__fileSystem.getFolder(topLevelFolders[r])
+        file, path = self.__chooseRandomFileRec(topLevelFolder)
+        return file, topLevelFolder['name'] + "/" + path
 
     def __getRandomPicture(self) -> tuple[File, str]:
         """
@@ -122,6 +124,7 @@ class Slideshow:
             try:
                 file, path = self.__chooseRandomFileFirstLevel()
                 if file['mimeType'] in self.SUPPORTED_IMAGE_MIME_TYPES:
+                    print("Supported")
                     if self.__env['MAX_FILE_SIZE'] == -1 or self.__env['MAX_FILE_SIZE'] > file['size']:
                         pathLocal = self.__fileSystem.getFile(file)
                         return file, path, pathLocal
@@ -164,7 +167,7 @@ class Slideshow:
         except (UnidentifiedImageError, OSError):
             # image is unsupported or corrupted
             # try again
-            self.__slideshow.after(0, self.__display_next_slide)
+            self.__slideshow.after(0, self.__chooseRandomFileFirstLevel)
             return
 
         # resize image to full screen size
@@ -179,7 +182,7 @@ class Slideshow:
         imgWidthFull = int(imgWidth*ratio)
         imgHeightFull = int(imgHeight*ratio)
         pilImage = pilImage.resize(
-            (imgWidthFull, imgHeightFull), Image.ANTIALIAS)
+            (imgWidthFull, imgHeightFull))
 
         # need to store iamge to not have it garbage collected immediately
         self.__nextImage = ImageTk.PhotoImage(pilImage)
@@ -231,8 +234,10 @@ class Slideshow:
         self.__WIDTH_DISPLAY_HALF = self.__slideshow.winfo_screenwidth()
         self.__HEIGHT_DISPLAY_HALF = self.__slideshow.winfo_screenheight()
         # Override window size for testing
-        self.__WIDTH_DISPLAY_HALF = 300
-        self.__HEIGHT_DISPLAY_HALF = 300
+        #self.__WIDTH_DISPLAY_HALF = 300
+        #self.__HEIGHT_DISPLAY_HALF = 300
+
+        self.__slideshow.attributes("-fullscreen", True) 
 
         self.__slideshow.title("Slideshow")
         self.__slideshow.geometry(
